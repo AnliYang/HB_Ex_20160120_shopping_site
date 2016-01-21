@@ -72,8 +72,21 @@ def shopping_cart():
     # - hand to the template the total order cost and the list of melon types
 
     # pass session/cart info
-    return render_template("cart.html")
+    cart = Counter(session['cart'])
 
+    melon_dict = melons.read_melon_types_from_file("melons.txt")
+    
+    order_dict = {}
+
+    total = 0
+    for melon in cart:
+        order_dict[melon] = {"name": melon_dict[melon].common_name, 
+                            "quantity": cart[melon],
+                            "price": melon_dict[melon].price,
+                            "total": cart[melon] * melon_dict[melon].price}
+        total += order_dict[melon]["total"]
+
+    return render_template("cart.html", order = order_dict, total = total)
 
 @app.route("/add_to_cart/<int:id>")
 def add_to_cart(id):
@@ -104,36 +117,9 @@ def add_to_cart(id):
     #     add the melon (by melon_id) to the cart with qty 1
 
     # flash message: You added a melon! Yay
-    cart = Counter(session['cart'])
 
-    melon_dict = melons.read_melon_types_from_file("melons.txt")
-
-    # import pdb; pdb.set_trace();
-    # print melon_dict
-    # print cart
-    # print type(cart)
-    # dictionary containing: 
-    #     name
-    #     quantity
-    #     price
-    #     total (per melon)
-    
-    order_dict = {}
-
-    total = 0
-    for melon in cart:
-        order_dict[melon] = {"name": melon_dict[melon].common_name, 
-                            "quantity": cart[melon],
-                            "price": melon_dict[melon].price,
-                            "total": cart[melon] * melon_dict[melon].price}
-        total += order_dict[melon]["total"]
-
-    print order_dict
-    print total
-    
-    # total (order)
-
-    return render_template("cart.html", order = order_dict, total = total)
+    flash("You added a melon! Yay!")
+    return redirect("/cart")
 
 @app.route("/login", methods=["GET"])
 def show_login():
