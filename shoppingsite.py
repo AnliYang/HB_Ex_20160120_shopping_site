@@ -9,7 +9,7 @@ Authors: Joel Burton, Christian Fernandez, Meggie Mahnken.
 
 from flask import Flask, render_template, redirect, flash, session
 import jinja2
-
+from collections import Counter
 import melons
 
 
@@ -104,13 +104,36 @@ def add_to_cart(id):
     #     add the melon (by melon_id) to the cart with qty 1
 
     # flash message: You added a melon! Yay
-    cart = session['cart']
+    cart = Counter(session['cart'])
 
     melon_dict = melons.read_melon_types_from_file("melons.txt")
 
-    print melon_dict
+    # import pdb; pdb.set_trace();
+    # print melon_dict
+    # print cart
+    # print type(cart)
+    # dictionary containing: 
+    #     name
+    #     quantity
+    #     price
+    #     total (per melon)
+    
+    order_dict = {}
 
-    return render_template("cart.html", cart=cart, melons=melon_dict)
+    total = 0
+    for melon in cart:
+        order_dict[melon] = {"name": melon_dict[melon].common_name, 
+                            "quantity": cart[melon],
+                            "price": melon_dict[melon].price,
+                            "total": cart[melon] * melon_dict[melon].price}
+        total += order_dict[melon]["total"]
+
+    print order_dict
+    print total
+    
+    # total (order)
+
+    return render_template("cart.html", order = order_dict, total = total)
 
 @app.route("/login", methods=["GET"])
 def show_login():
